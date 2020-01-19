@@ -178,13 +178,17 @@ Nr_n = size(RDM, 1);
 Nd_n = size(RDM, 2);
 signal_cfar = zeros(Nr_n, Nd_n);
 
-% slide through the RDM array
-for i = 1:(Nr_n-(GR+TR+1))     
-    for j = 1:(Nd_n-(GD+TD+1))     
-        s = db2pow(RDM(i:i+TR-1, j:j+TD-1));
-        noise_level = sum(s, 'all');
+% calculate total number of bins inside sliding window
+L = (2*(GR+TR)+1) * (2*(GD+TD)+1);
 
-        noise_level = (noise_level / (TD+TR)) * offset;
+% slide through the RDM array
+for i = 1:(Nr_n-(2*(GR+TR)+1))     
+    for j = 1:(Nd_n-(2*(GD+TD)+1))     
+        s_all = db2pow(RDM(i:i+2*(GR+TR), j:j+2*(GD+TD)));
+        s_guard = db2pow(RDM(i+TR:i+2*GR, j+TD:j+2*GD));
+        noise_level = sum(s_all, 'all') - sum(s_guard, 'all');
+
+        noise_level = ( noise_level / L ) * offset;
         noise_level = pow2db(noise_level);
 
         CUT = RDM(i+GR+TR, j+GD+TD);
